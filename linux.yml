@@ -1,0 +1,10 @@
+---
+- name: case1
+  hosts: case1
+  tasks:
+  - name: install_mc
+    dnf:
+        name: "mc"
+  - name: install_docker
+    dnf:
+        name: "docker"

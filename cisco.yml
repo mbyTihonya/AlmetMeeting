@@ -1,0 +1,78 @@
+---
+- hosts: case2
+  gather_facts: no
+  vars:
+   - left_hostname: "L-RTR.unakbars.ru"
+   - right_hostname: "R-RTR.unakbars.ru"
+  tasks:
+  - name: Set 192.168.200.254 gi2 Right
+    ios_config:
+     parents: "interface gi2"
+     lines:
+       - ip address 192.168.200.254 255.255.255.0
+       - no shut
+    when: inventory_hostname == "R-RTR"
+
+  - name: Set 192.168.100.254 gi2 Left
+    ios_config:
+      parents: "interface gi2"
+      lines:
+        - ip address 192.168.100.254 255.255.255.0
+        - no shut
+    when: inventory_hostname == "L-RTR"
+
+  - name: tunnel1 left
+    ios_config:
+      parents: "interface tunnel1"
+      lines:
+        - ip address 100.100.100.1 255.255.255.252
+        - tunnel source 200.100.100.30
+        - tunnel destination 200.100.100.20
+        - tunnel mode gre ip 
+        - no shut
+    when: inventory_hostname == "L-RTR"
+    
+  - name: tunnel1 right
+    ios_config:
+      parents: "interface tunnel1"
+      lines:
+        - ip address 100.100.100.2 255.255.255.252
+        - tunnel source 200.100.100.20
+        - tunnel destination 200.100.100.30
+        - tunnel mode gre ip 
+        - no shut
+    when: inventory_hostname == "R-RTR"
+  
+  - name: nat outside on interface
+    ios_config:
+      parents: "interface gi1"
+      lines:
+        - ip nat outside
+
+  - name: nat inside on interface
+    ios_config:
+      parents: "interface gi2"
+      lines:
+        - ip nat inside
+
+  - name: access-list
+    ios_config:
+      lines:
+        - access-list 1 permit 192.168.0.0 0.0.255.255
+
+  - name: nat
+    ios_config:
+      lines:
+        - ip nat inside source list 1 interface gi1 overload
+
+
+  - name: ospf
+    ios_config:
+      parents: "router ospf 1"
+      lines:
+        - network 0.0.0.0 255.255.255.255 area 0
+
+  - name: default dns server
+    ios_config:
+      lines:
+        - ip name-server 200.100.100.254
