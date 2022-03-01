@@ -76,3 +76,8 @@
     ios_config:
       lines:
         - ip name-server 200.100.100.254
+
+  - name: ip route
+    ios_config:
+      lines:
+        - ip route 0.0.0.0 0.0.0.0 200.100.100.254
